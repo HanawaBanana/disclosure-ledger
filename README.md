@@ -15,7 +15,11 @@ analytics, and no request to any third party: the app works with the network swi
 off, which is the point — agency work, tender bids and client deliverables are exactly
 the documents you cannot paste into a web form.
 
-* **Live app:** https://hanawabanana.github.io/disclosure-ledger/
+* **Live app:** https://page.far-domain.top/disclosure-ledger/ — GitHub Pages, served from
+  `main` (`https://hanawabanana.github.io/disclosure-ledger/` redirects there, because this
+  account has a custom Pages domain configured)
+* **Example ledger:** `docs/examples/ledger.json` — a real export from the tender sample:
+  `python3 tools/verify_ledger.py docs/examples/ledger.json`
 * **Licence:** MIT
 * **Runtime:** a browser. Nothing else. (Node.js ≥ 18 only to run the tests.)
 
@@ -207,7 +211,7 @@ Query parameters used by the recording tool and by anyone reviewing the app:
 
 ```bash
 node --test tests/                   # 151 tests, offline, no dependencies
-python3 tools/verify_ledger.py ledger.json      # independent verifier, exit code 0/1
+python3 tools/verify_ledger.py docs/examples/ledger.json   # independent verifier, exit code 0/1
 python3 tools/make_video.py          # rebuild docs/media/disclosure_ledger_demo.mp4
 ```
 
@@ -226,7 +230,9 @@ Static hosting, nothing else. GitHub Pages serves this repository's `main` branc
 Settings → Pages → Source: Deploy from a branch → main → / (root)
 ```
 
-The app is at `https://<user>.github.io/disclosure-ledger/`; the same files run on
+The app is at `https://page.far-domain.top/disclosure-ledger/` (and at
+`https://<user>.github.io/disclosure-ledger/`, which redirects to the configured custom
+domain); the same files run on
 Netlify, Cloudflare Pages, S3 + CloudFront or any web server, because the only
 requirement is "serve these files over HTTPS".
 

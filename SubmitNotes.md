@@ -39,11 +39,17 @@ the code does; where a claim is a limit, it says so.
 ## Links
 
 * **Public repository:** https://github.com/HanawaBanana/disclosure-ledger
-* **Live app (GitHub Pages):** https://hanawabanana.github.io/disclosure-ledger/
+* **Live app (GitHub Pages):** https://page.far-domain.top/disclosure-ledger/ — the
+  account's custom Pages domain; `https://hanawabanana.github.io/disclosure-ledger/`
+  redirects there (HTTP 301). Both were checked live: the app boots, runs a check and
+  renders the result.
 * **Demo video (3:24, 1280×800, H.264 + AAC, 5.06 MB):**
   `docs/media/disclosure_ledger_demo.mp4` in the repository — 204 s, recorded from the
   live app with the guided tour (`/?demo=N`), English narration.
 * **Thumbnail:** `docs/media/thumbnail.jpg`
+* **Example ledger (verifies offline):** `docs/examples/ledger.json` —
+  `python3 tools/verify_ledger.py docs/examples/ledger.json` prints
+  `OK: 2 records, chain intact`
 * **Business briefing:** `docs/BUSINESS.md` (Market Friction · Architecture · Target
   Cohort · Fiscal Architecture, including pricing tiers and unit economics)
 * **Technical README:** `README.md` (architecture diagram, stack, data schema, run/test)
@@ -76,7 +82,7 @@ python3 tools/make_video.py            # rebuild the demo video (Chrome + ffmpeg
 
 | Requirement | Where it is met | Honest status |
 |---|---|---|
-| 1. Production-ready deployment (live, stable, judge-accessible URL) | GitHub Pages, served from `main` at https://hanawabanana.github.io/disclosure-ledger/ | **Met.** Static hosting on a global CDN; verified live and rendering the app (not a placeholder). |
+| 1. Production-ready deployment (live, stable, judge-accessible URL) | GitHub Pages, served from `main` at https://page.far-domain.top/disclosure-ledger/ (the `github.io` URL 301-redirects there) | **Met.** Static hosting on a global CDN; verified live and rendering the app (not a placeholder). |
 | 2. Verifiable infrastructure (public repo, professional README, architecture, stack, DB schema, local reproduction, real commit history) | `README.md`: architecture diagram, stack table, data schema for the ledger record, export file, local storage keys and the analysis profile; local run and test commands; `LICENSE` (MIT); `.gitignore`; incremental commits | **Met.** The "database schema" here is the ledger record shape plus the three IndexedDB keys, because the product deliberately has no server-side database. |
 | 3. Operational MVP (end-to-end workflow, real state management, works for a real person) | Check → statement → ledger → export, with IndexedDB persistence, recent-document list, reload-safe answers, verification and three export formats | **Met.** Exercised end to end in the video and in `tests/integration.test.js`. |
 | 4. Executive briefing (market friction, architecture, target cohort) | `docs/BUSINESS.md` §1–§3 | **Met.** |

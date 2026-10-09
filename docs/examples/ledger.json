@@ -1,0 +1,78 @@
+{
+  "format": "disclosure-ledger/1",
+  "app": "Disclosure Ledger",
+  "appVersion": "1.0.0",
+  "engine": "1.0.0",
+  "generatedAt": "2026-10-07T09:12:02.000Z",
+  "digest": "c1726b8019e70073a3c05c91bbf86066a1a5f211076deab18f4eee6f57a3a5b2",
+  "verification": {
+    "ok": true,
+    "checked": 2,
+    "issues": [],
+    "brokenAt": null
+  },
+  "recordCount": 2,
+  "records": [
+    {
+      "format": 1,
+      "seq": 1,
+      "timestamp": "2026-10-07T09:12:00.000Z",
+      "type": "document.registered",
+      "payload": {
+        "name": "itt-2026-044-ai-use-declaration.md",
+        "digest": "ac95e6e20be23b070bebae57e37846072a8fa33b7744800800db3c0caa9fb1c5",
+        "chars": 905,
+        "words": 136
+      },
+      "prevHash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "hash": "fe29e503feab742afb0a7710c06e38628ddb18a64ecd4f406a180b1d97cfac40"
+    },
+    {
+      "format": 1,
+      "seq": 2,
+      "timestamp": "2026-10-07T09:12:01.000Z",
+      "type": "check.run",
+      "payload": {
+        "document": "ac95e6e20be23b070bebae57e37846072a8fa33b7744800800db3c0caa9fb1c5",
+        "engine": "1.0.0",
+        "packs": [
+          "eu-ai-act-art50",
+          "tender-ai-declaration"
+        ],
+        "clauses": 16,
+        "applicable": 10,
+        "passed": 5,
+        "gaps": 5,
+        "bySeverity": {
+          "high": 3,
+          "medium": 2,
+          "low": 0
+        },
+        "readiness": 48,
+        "coverage": 50,
+        "declared": [
+          "ai_used",
+          "commercial",
+          "generative_output",
+          "human_review",
+          "rights",
+          "tender",
+          "text_output"
+        ],
+        "detected": [
+          "ai_mentioned",
+          "ai_used",
+          "commercial",
+          "generative_output",
+          "human_review",
+          "interactive",
+          "rights",
+          "tender",
+          "text_output"
+        ]
+      },
+      "prevHash": "fe29e503feab742afb0a7710c06e38628ddb18a64ecd4f406a180b1d97cfac40",
+      "hash": "229553285e4009c5175b0575b020e0748d26b92d53b2e8426749c4b1ec7a2198"
+    }
+  ]
+}
