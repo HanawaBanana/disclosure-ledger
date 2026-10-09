@@ -1,0 +1,10 @@
+# Nothing here is needed to run the app: it is a static site with no build step.
+node_modules/
+package-lock.json
+
+# Video build scratch space (tools/make_video.py rebuilds it)
+docs/media/_work/
+
+# OS noise
+.DS_Store
+Thumbs.db

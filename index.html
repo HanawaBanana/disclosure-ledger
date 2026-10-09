@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Disclosure Ledger — local-first AI disclosure compliance</title>
+<meta name="description" content="Paste a deliverable, pick the rule packs that apply, and get a gap list against each clause, a ready-to-paste AI disclosure statement, and a SHA-256 hash-chained audit record. Runs entirely in your browser: nothing is uploaded.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f766e'/%3E%3Cpath d='M9 22V10h6a5 5 0 0 1 0 10H9' stroke='white' stroke-width='2.5' fill='none'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./app/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#0f766e"/><path d="M9 22V10h6a5 5 0 0 1 0 10H9" stroke="white" stroke-width="2.5" fill="none"/></svg>
+    <div>
+      <h1>Disclosure Ledger</h1>
+      <p class="tagline">Paste a deliverable, check it against the AI-disclosure rules that apply to it, and get a statement plus a tamper-evident record.</p>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <span class="pill pill-local" title="There is no server, no API key and no analytics in this app.">
+      <svg viewBox="0 0 16 16" aria-hidden="true" class="dot"><circle cx="8" cy="8" r="4" fill="currentColor"/></svg>
+      Runs in your browser · nothing is uploaded
+    </span>
+    <button id="theme-toggle" class="ghost" type="button" aria-label="Switch colour theme">Theme</button>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Sections">
+  <button class="tab is-active" role="tab" data-tab="scan" type="button">1 · Check a deliverable</button>
+  <button class="tab" role="tab" data-tab="statement" type="button">2 · Disclosure statement</button>
+  <button class="tab" role="tab" data-tab="ledger" type="button">3 · Audit ledger</button>
+  <button class="tab" role="tab" data-tab="verify" type="button">4 · Verify a ledger</button>
+  <button class="tab" role="tab" data-tab="method" type="button">Method &amp; privacy</button>
+</nav>
+
+<main>
+
+<!-- ---------------------------------------------------------------- -->
+<section id="panel-scan" class="panel is-active" role="tabpanel" aria-labelledby="tab-scan">
+
+  <div class="grid-2">
+    <div class="col">
+      <div class="card">
+        <div class="card-head">
+          <h2>1. The deliverable</h2>
+          <span class="hint">Paste text, or drop a .txt / .md / .csv / .json file. Nothing leaves this page.</span>
+        </div>
+        <div class="card-body">
+          <div class="sample-row" id="sample-row"></div>
+          <textarea id="doc-text" spellcheck="false" placeholder="Paste the deliverable here — a tender response, a client hand-over note, a caption, an entry document…" aria-label="Deliverable text"></textarea>
+          <div class="dropzone" id="dropzone">
+            <input type="file" id="file-input" accept=".txt,.md,.markdown,.csv,.json,.html,.svg" hidden>
+            <span>Drop a text file here, or <button type="button" class="link" id="browse">choose one</button>. Files are read locally with the FileReader API.</span>
+          </div>
+          <dl class="stats" id="doc-stats">
+            <div><dt>Words</dt><dd id="stat-words">0</dd></div>
+            <div><dt>Sentences</dt><dd id="stat-sentences">0</dd></div>
+            <div><dt>Characters</dt><dd id="stat-chars">0</dd></div>
+            <div><dt>SHA-256 of the text</dt><dd id="stat-digest" class="mono">—</dd></div>
+          </dl>
+          <div class="recent" id="recent-docs" hidden>
+            <h3>Recent documents on this machine</h3>
+            <ul id="recent-list"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>2. What you declared about your AI use</h2>
+          <span class="hint">Detected in the text and declared here are merged; every rule says which one made it apply.</span>
+        </div>
+        <div class="card-body">
+          <div class="check-grid" id="declared-grid"></div>
+          <div class="field-row">
+            <label for="tools">Tools and versions used</label>
+            <input type="text" id="tools" placeholder="e.g. image model (version 2026-08), text assistant (version 2026-09)">
+          </div>
+          <div class="field-row">
+            <label for="usage-note">Anything a reader should know about how it was used</label>
+            <textarea id="usage-note" rows="3" placeholder="One or two sentences: what the model proposed, what you changed."></textarea>
+          </div>
+          <div class="signal-strip" id="signal-strip"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card">
+        <div class="card-head">
+          <h2>3. Rule packs</h2>
+          <span class="hint">Pick the rules that apply to this deliverable. Each clause is a short paraphrase with its own number.</span>
+        </div>
+        <div class="card-body">
+          <div class="pack-actions">
+            <button type="button" id="recommend" class="ghost">Suggest packs for this document</button>
+            <span id="recommend-note" class="hint"></span>
+          </div>
+          <div id="pack-list" class="pack-list"></div>
+          <div class="run-row">
+            <button type="button" id="run-check" class="primary">Run the check</button>
+            <span class="hint" id="run-note"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="summary-card" hidden>
+        <div class="card-head"><h2>4. Result</h2><span class="hint" id="summary-generated"></span></div>
+        <div class="card-body">
+          <div class="score-row">
+            <div class="score-dial" id="score-dial"><span id="score-value">0</span><small>/100</small></div>
+            <div class="score-copy">
+              <p class="band" id="summary-band">—</p>
+              <p class="hint" id="summary-counts"></p>
+              <div class="chips" id="summary-chips"></div>
+            </div>
+          </div>
+          <div class="next-actions">
+            <button type="button" id="go-statement" class="primary">Draft the disclosure statement</button>
+            <button type="button" id="go-ledger" class="ghost">Open the ledger</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="findings-card" hidden>
+    <div class="card-head">
+      <h2>Gaps, with the clause and what to write</h2>
+      <span class="hint">Each gap quotes the rule, shows where in your text it should be addressed, and gives wording you can paste.</span>
+    </div>
+    <div class="card-body">
+      <div id="gap-list" class="gap-list"></div>
+    </div>
+  </div>
+
+  <div class="card" id="clauses-card" hidden>
+    <div class="card-head">
+      <h2>Every clause, clause by clause</h2>
+      <span class="hint">Satisfied clauses show the sentence that satisfied them. Not-applicable clauses say why they were skipped.</span>
+    </div>
+    <div class="card-body" id="clause-tables"></div>
+  </div>
+</section>
+
+<!-- ---------------------------------------------------------------- -->
+<section id="panel-statement" class="panel" role="tabpanel" aria-labelledby="tab-statement">
+  <div class="grid-2">
+    <div class="col">
+      <div class="card">
+        <div class="card-head">
+          <h2>Fields the statement needs</h2>
+          <span class="hint">Leave one blank and the draft keeps a visible 〔placeholder〕 and lists it at the end — it cannot ship by accident.</span>
+        </div>
+        <div class="card-body" id="answers-form">
+          <div class="field-row"><label for="ans-organisation">Organisation</label><input id="ans-organisation" type="text" data-answer="organisation" placeholder="Northlight Studio"></div>
+          <div class="field-row"><label for="ans-project">Deliverable</label><input id="ans-project" type="text" data-answer="project" placeholder="Harbour Festival 2026 — asset pack"></div>
+          <div class="field-row"><label for="ans-owner">Responsible person</label><input id="ans-owner" type="text" data-answer="owner" placeholder="the creative director"></div>
+          <div class="field-row"><label for="ans-reviewer">Reviewer</label><input id="ans-reviewer" type="text" data-answer="reviewer" placeholder="the studio producer"></div>
+          <div class="field-row"><label for="ans-tools">Tools and versions</label><input id="ans-tools" type="text" data-answer="tools" placeholder="image model (version 2026-08)"></div>
+          <div class="field-row"><label for="ans-contact">Contact for verification</label><input id="ans-contact" type="text" data-answer="contact" placeholder="compliance@example.com"></div>
+          <div class="field-row"><label for="ans-dataHandling">Data-handling sentence</label><textarea id="ans-dataHandling" rows="2" data-answer="dataHandling"></textarea></div>
+          <div class="field-row"><label for="ans-licenceNote">Rights sentence</label><textarea id="ans-licenceNote" rows="2" data-answer="licenceNote"></textarea></div>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <div class="card-head">
+          <h2>Draft</h2>
+          <span class="hint" id="statement-meta"></span>
+        </div>
+        <div class="card-body">
+          <div class="next-actions">
+            <button type="button" id="generate-statement" class="primary">Generate the statement</button>
+            <button type="button" id="copy-statement" class="ghost" disabled>Copy Markdown</button>
+            <button type="button" id="download-statement" class="ghost" disabled>Download .md</button>
+          </div>
+          <div id="statement-preview" class="preview"><p class="hint">Run a check first, then generate the statement.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ---------------------------------------------------------------- -->
+<section id="panel-ledger" class="panel" role="tabpanel" aria-labelledby="tab-ledger">
+  <div class="card">
+    <div class="card-head">
+      <h2>The audit ledger</h2>
+      <span class="hint">Append-only. Each record carries the digest of the one before it, so editing any record breaks the chain from that point on.</span>
+    </div>
+    <div class="card-body">
+      <div class="score-row">
+        <div class="chain-state" id="chain-state"><span class="chip chip-quiet">not verified yet</span></div>
+        <div class="score-copy">
+          <p class="hint" id="ledger-meta">No records yet.</p>
+          <p class="hint mono" id="ledger-digest">digest —</p>
+        </div>
+      </div>
+      <div class="next-actions">
+        <button type="button" id="verify-ledger" class="primary">Verify this ledger</button>
+        <button type="button" id="export-json" class="ghost">Export ledger (.json)</button>
+        <button type="button" id="export-html" class="ghost">Export report (.html)</button>
+        <button type="button" id="export-md" class="ghost">Export report (.md)</button>
+        <button type="button" id="clear-ledger" class="ghost danger">Clear</button>
+        <button type="button" id="preview-html" class="ghost">Preview the exported .html</button>
+      </div>
+      <div class="html-preview" id="html-preview" hidden>
+        <h3>What the exported, self-contained .html looks like</h3>
+        <p class="hint">This is the real export file, rendered in a frame — including the chain verification it performs when it is opened.</p>
+        <iframe id="html-frame" title="Exported report preview" sandbox="allow-scripts allow-same-origin"></iframe>
+      </div>
+      <table class="ledger-table">
+        <thead><tr><th>#</th><th>When (UTC)</th><th>Record</th><th>Payload</th><th>Digest</th></tr></thead>
+        <tbody id="ledger-rows"><tr><td colspan="5" class="hint">No records yet — run a check.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ---------------------------------------------------------------- -->
+<section id="panel-verify" class="panel" role="tabpanel" aria-labelledby="tab-verify">
+  <div class="grid-2">
+    <div class="col">
+      <div class="card">
+        <div class="card-head">
+          <h2>Verify a ledger file</h2>
+          <span class="hint">Paste or drop a ledger .json you were given. The chain is recomputed here, in this tab.</span>
+        </div>
+        <div class="card-body">
+          <div class="dropzone" id="verify-dropzone">
+            <input type="file" id="verify-file" accept=".json" hidden>
+            <span>Drop a ledger .json, or <button type="button" class="link" id="verify-browse">choose one</button>.</span>
+          </div>
+          <textarea id="verify-input" spellcheck="false" placeholder='{"records":[ … ]}  or  [ … ]' aria-label="Ledger JSON"></textarea>
+          <div class="next-actions">
+            <button type="button" id="verify-run" class="primary">Verify</button>
+            <button type="button" id="verify-tamper" class="ghost">Load a deliberately edited ledger</button>
+            <button type="button" id="verify-clear" class="ghost">Clear</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <div class="card-head"><h2>Result</h2><span class="hint" id="verify-meta"></span></div>
+        <div class="card-body" id="verify-result"><p class="hint">Nothing verified yet.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ---------------------------------------------------------------- -->
+<section id="panel-method" class="panel" role="tabpanel" aria-labelledby="tab-method">
+  <div class="grid-2">
+    <div class="col">
+      <div class="card">
+        <div class="card-head"><h2>What this tool does, and what it refuses to do</h2></div>
+        <div class="card-body prose">
+          <p>Disclosure Ledger checks one deliverable against the AI-disclosure rules you select, and hands you three things: a gap list with the rule and the wording to use, a disclosure statement draft, and a hash-chained record of every step.</p>
+          <p>It decides nothing by guessing. A clause applies only when a signal is true — declared by you, or found as a literal term in the text — and it counts as satisfied only when one of its phrase patterns really occurs in the deliverable. If nothing matches, you get a gap, not a reassuring silence.</p>
+          <p><strong>It does not do legal advice.</strong> The rule packs are short paraphrases written by hand, with the source named and the clause number kept. Read the source before you rely on it.</p>
+          <p><strong>It does not upload anything.</strong> There is no server, no API key, no analytics and no font or script from a CDN. You can open this page, switch off the network, and it still works.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Rule packs in this build</h2></div>
+        <div class="card-body" id="pack-about"></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <div class="card-head"><h2>How the ledger works</h2></div>
+        <div class="card-body prose">
+          <pre class="ascii">record[n].hash = SHA-256( record[n-1].hash + "\n" + canonical({seq, timestamp, type, payload}) )
+record[0].prevHash = 0000…0000 (64 zeros)</pre>
+          <p>Canonical means JSON with the object keys sorted and no insignificant whitespace, so the same record hashes identically in JavaScript and in Python. Verify the chain here, in the exported HTML file, or from the command line:</p>
+          <pre class="ascii">python3 tools/verify_ledger.py ledger.json</pre>
+          <p>Editing a record, reordering records, or dropping one from the middle is detected; the verifier reports the first index where the chain stops matching.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Where the data lives</h2></div>
+        <div class="card-body prose">
+          <pre class="ascii">your text ──▶ FileReader / textarea ──▶ analysis in the page
+                    │
+                    ├─▶ IndexedDB (or localStorage): recent documents, answers, ledger
+                    ├─▶ .json / .html / .md download  ← the only way data leaves
+                    └─▶ SHA-256 (WebCrypto) → hash chain</pre>
+          <p>Clearing site data, or pressing Clear on the ledger tab, removes it. Exports are ordinary files you decide what to do with.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p><strong>Disclosure Ledger</strong> — local-first AI-disclosure compliance for the people who have to sign the deliverable. MIT licensed.</p>
+  <p class="hint">Rule paraphrases and wording suggestions are a drafting aid, not legal advice. Data never leaves the browser.</p>
+</footer>
+
+<noscript><p class="noscript">This app needs JavaScript: the analysis, the hashing and the storage all run locally in your browser. Nothing is sent to a server even with JavaScript on.</p></noscript>
+
+<script type="module" src="./app/main.js"></script>
+</body>
+</html>

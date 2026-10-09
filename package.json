@@ -1,0 +1,24 @@
+{
+  "name": "disclosure-ledger",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local-first AI-disclosure compliance: rule-pack gap checks, statement drafts and a SHA-256 hash-chained audit ledger, entirely in the browser.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test tests/",
+    "serve": "python3 -m http.server 8788",
+    "verify": "python3 tools/verify_ledger.py"
+  },
+  "keywords": [
+    "ai-disclosure",
+    "compliance",
+    "eu-ai-act",
+    "hash-chain",
+    "local-first",
+    "saas"
+  ]
+}
